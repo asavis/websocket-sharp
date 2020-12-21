@@ -4,6 +4,10 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <Authors>sta.blockhead</Authors>
+    <Copyright>Copyright (c) 2010-2020 sta.blockhead</Copyright>
+    <PackageProjectUrl>https://github.com/sta/websocket-sharp</PackageProjectUrl>
+    <PackageLicenseExpression>MIT License</PackageLicenseExpression>
   </PropertyGroup>
 
   
