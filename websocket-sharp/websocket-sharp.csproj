@@ -8,6 +8,7 @@
     <Copyright>Copyright (c) 2010-2020 sta.blockhead</Copyright>
     <PackageProjectUrl>https://github.com/sta/websocket-sharp</PackageProjectUrl>
     <PackageLicenseExpression>MIT License</PackageLicenseExpression>
+    <Description>A C# implementation of the WebSocket protocol client and server</Description>
   </PropertyGroup>
 
   
