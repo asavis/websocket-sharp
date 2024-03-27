@@ -119,6 +119,7 @@ namespace WebSocketSharp
     private Uri                            _uri;
     private const string                   _version = "13";
     private TimeSpan                       _waitTime;
+    private readonly System.Net.IPEndPoint _localEndPoint;
 
     #endregion
 
@@ -283,6 +284,11 @@ namespace WebSocketSharp
       _waitTime = TimeSpan.FromSeconds (5);
 
       init ();
+    }
+
+    public WebSocket(System.Net.IPEndPoint localEndPoint, string url, params string[] protocols) : this(url, protocols)
+    {
+        _localEndPoint = localEndPoint;
     }
 
     #endregion
@@ -752,6 +758,16 @@ namespace WebSocketSharp
         }
       }
     }
+
+    /// <summary>
+    /// Gets remote EndPoint of the underlying TCP connection.
+    /// </summary>
+    public System.Net.EndPoint RemoteEndPoint => _tcpClient.Client.RemoteEndPoint;
+        
+    /// <summary>
+    /// Gets local EndPoint of the underlying TCP connection.
+    /// </summary>     
+    public System.Net.EndPoint LocalEndPoint => _tcpClient.Client.LocalEndPoint;
 
     #endregion
 
@@ -2256,7 +2272,7 @@ namespace WebSocketSharp
         if (res.CloseConnection) {
           releaseClientResources ();
 
-          _tcpClient = new TcpClient (_proxyUri.DnsSafeHost, _proxyUri.Port);
+          _tcpClient = CreateAndConnectTcpClient(_proxyUri.DnsSafeHost, _proxyUri.Port);
           _stream = _tcpClient.GetStream ();
         }
 
@@ -2271,7 +2287,7 @@ namespace WebSocketSharp
     private void setClientStream ()
     {
       if (_proxyUri != null) {
-        _tcpClient = new TcpClient (_proxyUri.DnsSafeHost, _proxyUri.Port);
+        _tcpClient = CreateAndConnectTcpClient(_proxyUri.DnsSafeHost, _proxyUri.Port);
         _stream = _tcpClient.GetStream ();
 
         var res = sendProxyConnectRequest ();
@@ -2282,7 +2298,7 @@ namespace WebSocketSharp
           throw new WebSocketException (msg);
       }
       else {
-        _tcpClient = new TcpClient (_uri.DnsSafeHost, _uri.Port);
+        _tcpClient = CreateAndConnectTcpClient(_uri.DnsSafeHost, _uri.Port);
         _stream = _tcpClient.GetStream ();
       }
 
@@ -2321,6 +2337,14 @@ namespace WebSocketSharp
                 );
         }
       }
+    }
+    private TcpClient CreateAndConnectTcpClient(string host, int port)
+    {
+        if (_localEndPoint == null) return new TcpClient (host, port);
+        
+        var client = new TcpClient(_localEndPoint);
+        client.Connect(host, port);
+        return client;
     }
 
     private void startReceiving ()
