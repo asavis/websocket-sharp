@@ -4,7 +4,7 @@
  *
  * The MIT License
  *
- * Copyright (c) 2012-2022 sta.blockhead
+ * Copyright (c) 2012-2024 sta.blockhead
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -256,19 +256,20 @@ namespace WebSocketSharp.Server
     ///   delegate.
     ///   </para>
     ///   <para>
-    ///   The delegate invokes the method called when the WebSocket interface
+    ///   It represents the delegate called when the WebSocket interface
     ///   for a session validates the handshake request.
     ///   </para>
     ///   <para>
-    ///   1st <see cref="CookieCollection"/> parameter passed to the method
+    ///   1st <see cref="CookieCollection"/> parameter passed to the delegate
     ///   contains the cookies to validate.
     ///   </para>
     ///   <para>
-    ///   2nd <see cref="CookieCollection"/> parameter passed to the method
+    ///   2nd <see cref="CookieCollection"/> parameter passed to the delegate
     ///   receives the cookies to send to the client.
     ///   </para>
     ///   <para>
-    ///   The method must return <c>true</c> if the cookies are valid.
+    ///   The method invoked by the delegate must return <c>true</c>
+    ///   if the cookies are valid.
     ///   </para>
     ///   <para>
     ///   <see langword="null"/> if not necessary.
@@ -324,15 +325,16 @@ namespace WebSocketSharp.Server
     ///   A <see cref="T:System.Func{string, bool}"/> delegate.
     ///   </para>
     ///   <para>
-    ///   The delegate invokes the method called when the WebSocket interface
+    ///   It represents the delegate called when the WebSocket interface
     ///   for a session validates the handshake request.
     ///   </para>
     ///   <para>
-    ///   The <see cref="string"/> parameter passed to the method is the value
-    ///   of the Host header.
+    ///   The <see cref="string"/> parameter passed to the delegate is
+    ///   the value of the Host header.
     ///   </para>
     ///   <para>
-    ///   The method must return <c>true</c> if the header value is valid.
+    ///   The method invoked by the delegate must return <c>true</c>
+    ///   if the header value is valid.
     ///   </para>
     ///   <para>
     ///   <see langword="null"/> if not necessary.
@@ -399,16 +401,17 @@ namespace WebSocketSharp.Server
     ///   A <see cref="T:System.Func{string, bool}"/> delegate.
     ///   </para>
     ///   <para>
-    ///   The delegate invokes the method called when the WebSocket interface
+    ///   It represents the delegate called when the WebSocket interface
     ///   for a session validates the handshake request.
     ///   </para>
     ///   <para>
-    ///   The <see cref="string"/> parameter passed to the method is the value
-    ///   of the Origin header or <see langword="null"/> if the header is not
-    ///   present.
+    ///   The <see cref="string"/> parameter passed to the delegate is
+    ///   the value of the Origin header or <see langword="null"/> if
+    ///   the header is not present.
     ///   </para>
     ///   <para>
-    ///   The method must return <c>true</c> if the header value is valid.
+    ///   The method invoked by the delegate must return <c>true</c>
+    ///   if the header value is valid.
     ///   </para>
     ///   <para>
     ///   <see langword="null"/> if not necessary.
@@ -443,11 +446,11 @@ namespace WebSocketSharp.Server
     ///   The default value is an empty string.
     ///   </para>
     /// </value>
-    /// <exception cref="InvalidOperationException">
-    /// The set operation is not available if the session has already started.
-    /// </exception>
     /// <exception cref="ArgumentException">
     /// The value specified for a set operation is not a token.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The set operation is not available if the session has already started.
     /// </exception>
     public string Protocol {
       get {
@@ -573,7 +576,8 @@ namespace WebSocketSharp.Server
     #region Internal Methods
 
     internal void Start (
-      WebSocketContext context, WebSocketSessionManager sessions
+      WebSocketContext context,
+      WebSocketSessionManager sessions
     )
     {
       _context = context;
@@ -650,20 +654,6 @@ namespace WebSocketSharp.Server
     ///   Its size must be 123 bytes or less in UTF-8.
     ///   </para>
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    /// The session has not started yet.
-    /// </exception>
-    /// <exception cref="ArgumentOutOfRangeException">
-    ///   <para>
-    ///   <paramref name="code"/> is less than 1000 or greater than 4999.
-    ///   </para>
-    ///   <para>
-    ///   -or-
-    ///   </para>
-    ///   <para>
-    ///   The size of <paramref name="reason"/> is greater than 123 bytes.
-    ///   </para>
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="code"/> is 1010 (mandatory extension).
@@ -681,6 +671,20 @@ namespace WebSocketSharp.Server
     ///   <para>
     ///   <paramref name="reason"/> could not be UTF-8-encoded.
     ///   </para>
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///   <para>
+    ///   <paramref name="code"/> is less than 1000 or greater than 4999.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   The size of <paramref name="reason"/> is greater than 123 bytes.
+    ///   </para>
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The session has not started yet.
     /// </exception>
     protected void Close (ushort code, string reason)
     {
@@ -717,9 +721,6 @@ namespace WebSocketSharp.Server
     ///   Its size must be 123 bytes or less in UTF-8.
     ///   </para>
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    /// The session has not started yet.
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="code"/> is <see cref="CloseStatusCode.MandatoryExtension"/>.
@@ -740,6 +741,9 @@ namespace WebSocketSharp.Server
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// The size of <paramref name="reason"/> is greater than 123 bytes.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The session has not started yet.
     /// </exception>
     protected void Close (CloseStatusCode code, string reason)
     {
@@ -810,20 +814,6 @@ namespace WebSocketSharp.Server
     ///   Its size must be 123 bytes or less in UTF-8.
     ///   </para>
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    /// The session has not started yet.
-    /// </exception>
-    /// <exception cref="ArgumentOutOfRangeException">
-    ///   <para>
-    ///   <paramref name="code"/> is less than 1000 or greater than 4999.
-    ///   </para>
-    ///   <para>
-    ///   -or-
-    ///   </para>
-    ///   <para>
-    ///   The size of <paramref name="reason"/> is greater than 123 bytes.
-    ///   </para>
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="code"/> is 1010 (mandatory extension).
@@ -841,6 +831,20 @@ namespace WebSocketSharp.Server
     ///   <para>
     ///   <paramref name="reason"/> could not be UTF-8-encoded.
     ///   </para>
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///   <para>
+    ///   <paramref name="code"/> is less than 1000 or greater than 4999.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   The size of <paramref name="reason"/> is greater than 123 bytes.
+    ///   </para>
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The session has not started yet.
     /// </exception>
     protected void CloseAsync (ushort code, string reason)
     {
@@ -882,9 +886,6 @@ namespace WebSocketSharp.Server
     ///   Its size must be 123 bytes or less in UTF-8.
     ///   </para>
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    /// The session has not started yet.
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="code"/> is <see cref="CloseStatusCode.MandatoryExtension"/>.
@@ -905,6 +906,9 @@ namespace WebSocketSharp.Server
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// The size of <paramref name="reason"/> is greater than 123 bytes.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The session has not started yet.
     /// </exception>
     protected void CloseAsync (CloseStatusCode code, string reason)
     {
@@ -993,14 +997,14 @@ namespace WebSocketSharp.Server
     ///   Its size must be 125 bytes or less in UTF-8.
     ///   </para>
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    /// The session has not started yet.
-    /// </exception>
     /// <exception cref="ArgumentException">
     /// <paramref name="message"/> could not be UTF-8-encoded.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// The size of <paramref name="message"/> is greater than 125 bytes.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// The session has not started yet.
     /// </exception>
     protected bool Ping (string message)
     {
@@ -1019,6 +1023,9 @@ namespace WebSocketSharp.Server
     /// <param name="data">
     /// An array of <see cref="byte"/> that specifies the binary data to send.
     /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="data"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     ///   <para>
     ///   The session has not started yet.
@@ -1029,9 +1036,6 @@ namespace WebSocketSharp.Server
     ///   <para>
     ///   The current state of the WebSocket interface is not Open.
     ///   </para>
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="data"/> is <see langword="null"/>.
     /// </exception>
     protected void Send (byte[] data)
     {
@@ -1055,20 +1059,6 @@ namespace WebSocketSharp.Server
     ///   The file is sent as the binary data.
     ///   </para>
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    ///   <para>
-    ///   The session has not started yet.
-    ///   </para>
-    ///   <para>
-    ///   -or-
-    ///   </para>
-    ///   <para>
-    ///   The current state of the WebSocket interface is not Open.
-    ///   </para>
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="fileInfo"/> is <see langword="null"/>.
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   The file does not exist.
@@ -1078,6 +1068,20 @@ namespace WebSocketSharp.Server
     ///   </para>
     ///   <para>
     ///   The file could not be opened.
+    ///   </para>
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="fileInfo"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///   <para>
+    ///   The session has not started yet.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   The current state of the WebSocket interface is not Open.
     ///   </para>
     /// </exception>
     protected void Send (FileInfo fileInfo)
@@ -1097,6 +1101,12 @@ namespace WebSocketSharp.Server
     /// <param name="data">
     /// A <see cref="string"/> that specifies the text data to send.
     /// </param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="data"/> could not be UTF-8-encoded.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="data"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     ///   <para>
     ///   The session has not started yet.
@@ -1107,12 +1117,6 @@ namespace WebSocketSharp.Server
     ///   <para>
     ///   The current state of the WebSocket interface is not Open.
     ///   </para>
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="data"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    /// <paramref name="data"/> could not be UTF-8-encoded.
     /// </exception>
     protected void Send (string data)
     {
@@ -1140,20 +1144,6 @@ namespace WebSocketSharp.Server
     /// <param name="length">
     /// An <see cref="int"/> that specifies the number of bytes to send.
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    ///   <para>
-    ///   The session has not started yet.
-    ///   </para>
-    ///   <para>
-    ///   -or-
-    ///   </para>
-    ///   <para>
-    ///   The current state of the WebSocket interface is not Open.
-    ///   </para>
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="stream"/> is <see langword="null"/>.
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="stream"/> cannot be read.
@@ -1169,6 +1159,20 @@ namespace WebSocketSharp.Server
     ///   </para>
     ///   <para>
     ///   No data could be read from <paramref name="stream"/>.
+    ///   </para>
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="stream"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///   <para>
+    ///   The session has not started yet.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   The current state of the WebSocket interface is not Open.
     ///   </para>
     /// </exception>
     protected void Send (Stream stream, int length)
@@ -1196,16 +1200,19 @@ namespace WebSocketSharp.Server
     ///   An <see cref="T:System.Action{bool}"/> delegate.
     ///   </para>
     ///   <para>
-    ///   The delegate invokes the method called when the send is complete.
+    ///   It specifies the delegate called when the send is complete.
     ///   </para>
     ///   <para>
-    ///   The <see cref="bool"/> parameter passed to the method is <c>true</c>
+    ///   The <see cref="bool"/> parameter passed to the delegate is <c>true</c>
     ///   if the send has successfully done; otherwise, <c>false</c>.
     ///   </para>
     ///   <para>
     ///   <see langword="null"/> if not necessary.
     ///   </para>
     /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="data"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     ///   <para>
     ///   The session has not started yet.
@@ -1216,9 +1223,6 @@ namespace WebSocketSharp.Server
     ///   <para>
     ///   The current state of the WebSocket interface is not Open.
     ///   </para>
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="data"/> is <see langword="null"/>.
     /// </exception>
     protected void SendAsync (byte[] data, Action<bool> completed)
     {
@@ -1250,30 +1254,16 @@ namespace WebSocketSharp.Server
     ///   An <see cref="T:System.Action{bool}"/> delegate.
     ///   </para>
     ///   <para>
-    ///   The delegate invokes the method called when the send is complete.
+    ///   It specifies the delegate called when the send is complete.
     ///   </para>
     ///   <para>
-    ///   The <see cref="bool"/> parameter passed to the method is <c>true</c>
+    ///   The <see cref="bool"/> parameter passed to the delegate is <c>true</c>
     ///   if the send has successfully done; otherwise, <c>false</c>.
     ///   </para>
     ///   <para>
     ///   <see langword="null"/> if not necessary.
     ///   </para>
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    ///   <para>
-    ///   The session has not started yet.
-    ///   </para>
-    ///   <para>
-    ///   -or-
-    ///   </para>
-    ///   <para>
-    ///   The current state of the WebSocket interface is not Open.
-    ///   </para>
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="fileInfo"/> is <see langword="null"/>.
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   The file does not exist.
@@ -1283,6 +1273,20 @@ namespace WebSocketSharp.Server
     ///   </para>
     ///   <para>
     ///   The file could not be opened.
+    ///   </para>
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="fileInfo"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///   <para>
+    ///   The session has not started yet.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   The current state of the WebSocket interface is not Open.
     ///   </para>
     /// </exception>
     protected void SendAsync (FileInfo fileInfo, Action<bool> completed)
@@ -1310,16 +1314,22 @@ namespace WebSocketSharp.Server
     ///   An <see cref="T:System.Action{bool}"/> delegate.
     ///   </para>
     ///   <para>
-    ///   The delegate invokes the method called when the send is complete.
+    ///   It specifies the delegate called when the send is complete.
     ///   </para>
     ///   <para>
-    ///   The <see cref="bool"/> parameter passed to the method is <c>true</c>
+    ///   The <see cref="bool"/> parameter passed to the delegate is <c>true</c>
     ///   if the send has successfully done; otherwise, <c>false</c>.
     ///   </para>
     ///   <para>
     ///   <see langword="null"/> if not necessary.
     ///   </para>
     /// </param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="data"/> could not be UTF-8-encoded.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="data"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     ///   <para>
     ///   The session has not started yet.
@@ -1330,12 +1340,6 @@ namespace WebSocketSharp.Server
     ///   <para>
     ///   The current state of the WebSocket interface is not Open.
     ///   </para>
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="data"/> is <see langword="null"/>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    /// <paramref name="data"/> could not be UTF-8-encoded.
     /// </exception>
     protected void SendAsync (string data, Action<bool> completed)
     {
@@ -1371,30 +1375,16 @@ namespace WebSocketSharp.Server
     ///   An <see cref="T:System.Action{bool}"/> delegate.
     ///   </para>
     ///   <para>
-    ///   The delegate invokes the method called when the send is complete.
+    ///   It specifies the delegate called when the send is complete.
     ///   </para>
     ///   <para>
-    ///   The <see cref="bool"/> parameter passed to the method is <c>true</c>
+    ///   The <see cref="bool"/> parameter passed to the delegate is <c>true</c>
     ///   if the send has successfully done; otherwise, <c>false</c>.
     ///   </para>
     ///   <para>
     ///   <see langword="null"/> if not necessary.
     ///   </para>
     /// </param>
-    /// <exception cref="InvalidOperationException">
-    ///   <para>
-    ///   The session has not started yet.
-    ///   </para>
-    ///   <para>
-    ///   -or-
-    ///   </para>
-    ///   <para>
-    ///   The current state of the WebSocket interface is not Open.
-    ///   </para>
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="stream"/> is <see langword="null"/>.
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="stream"/> cannot be read.
@@ -1410,6 +1400,20 @@ namespace WebSocketSharp.Server
     ///   </para>
     ///   <para>
     ///   No data could be read from <paramref name="stream"/>.
+    ///   </para>
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="stream"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///   <para>
+    ///   The session has not started yet.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   The current state of the WebSocket interface is not Open.
     ///   </para>
     /// </exception>
     protected void SendAsync (Stream stream, int length, Action<bool> completed)
@@ -1433,7 +1437,7 @@ namespace WebSocketSharp.Server
     /// <value>
     ///   <para>
     ///   A <see cref="WebSocketSharp.WebSocket"/> that represents
-    ///   the interface.
+    ///   the WebSocket interface.
     ///   </para>
     ///   <para>
     ///   <see langword="null"/> if the session has not started yet.

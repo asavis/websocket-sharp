@@ -4,7 +4,7 @@
  *
  * The MIT License
  *
- * Copyright (c) 2012-2023 sta.blockhead
+ * Copyright (c) 2012-2024 sta.blockhead
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,12 +69,11 @@ namespace WebSocketSharp.Server
 
     private System.Net.IPAddress    _address;
     private string                  _docRootPath;
-    private string                  _hostname;
+    private bool                    _isSecure;
     private HttpListener            _listener;
     private Logger                  _log;
     private int                     _port;
     private Thread                  _receiveThread;
-    private bool                    _secure;
     private WebSocketServiceManager _services;
     private volatile ServerState    _state;
     private object                  _sync;
@@ -463,7 +462,7 @@ namespace WebSocketSharp.Server
     /// </value>
     public bool IsSecure {
       get {
-        return _secure;
+        return _isSecure;
       }
     }
 
@@ -610,7 +609,7 @@ namespace WebSocketSharp.Server
     /// </exception>
     public ServerSslConfiguration SslConfiguration {
       get {
-        if (!_secure) {
+        if (!_isSecure) {
           var msg = "The server does not provide secure connections.";
 
           throw new InvalidOperationException (msg);
@@ -817,30 +816,35 @@ namespace WebSocketSharp.Server
     }
 
     private static HttpListener createListener (
-      string hostname, int port, bool secure
+      string hostname,
+      int port,
+      bool secure
     )
     {
-      var lsnr = new HttpListener ();
+      var ret = new HttpListener ();
 
+      var fmt = "{0}://{1}:{2}/";
       var schm = secure ? "https" : "http";
-      var pref = String.Format ("{0}://{1}:{2}/", schm, hostname, port);
+      var pref = String.Format (fmt, schm, hostname, port);
 
-      lsnr.Prefixes.Add (pref);
+      ret.Prefixes.Add (pref);
 
-      return lsnr;
+      return ret;
     }
 
     private void init (
-      string hostname, System.Net.IPAddress address, int port, bool secure
+      string hostname,
+      System.Net.IPAddress address,
+      int port,
+      bool secure
     )
     {
-      _hostname = hostname;
       _address = address;
       _port = port;
-      _secure = secure;
+      _isSecure = secure;
 
       _docRootPath = "./Public";
-      _listener = createListener (_hostname, _port, _secure);
+      _listener = createListener (hostname, port, secure);
       _log = _listener.Log;
       _services = new WebSocketServiceManager (_log);
       _sync = new object ();
@@ -869,12 +873,14 @@ namespace WebSocketSharp.Server
 
       if (evt == null) {
         context.ErrorStatusCode = 501;
+
         context.SendError ();
 
         return;
       }
 
       var e = new HttpRequestEventArgs (context, _docRootPath);
+
       evt (this, e);
 
       context.Response.Close ();
@@ -975,7 +981,7 @@ namespace WebSocketSharp.Server
         if (_state == ServerState.Start || _state == ServerState.ShuttingDown)
           return;
 
-        if (_secure) {
+        if (_isSecure) {
           string msg;
 
           if (!checkCertificate (out msg))
@@ -1052,7 +1058,9 @@ namespace WebSocketSharp.Server
     }
 
     private static bool tryCreateUri (
-      string uriString, out Uri result, out string message
+      string uriString,
+      out Uri result,
+      out string message
     )
     {
       result = null;
@@ -1073,9 +1081,9 @@ namespace WebSocketSharp.Server
       }
 
       var schm = uri.Scheme;
-      var http = schm == "http" || schm == "https";
+      var isHttpSchm = schm == "http" || schm == "https";
 
-      if (!http) {
+      if (!isHttpSchm) {
         message = "The scheme part is not 'http' or 'https'.";
 
         return false;
