@@ -4,7 +4,7 @@
  *
  * The MIT License
  *
- * Copyright (c) 2012-2024 sta.blockhead
+ * Copyright (c) 2012-2025 sta.blockhead
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -629,7 +629,7 @@ namespace WebSocketSharp.Server
 
     /// <summary>
     /// Closes the WebSocket connection for a session with the specified
-    /// code and reason.
+    /// status code and reason.
     /// </summary>
     /// <remarks>
     /// This method does nothing if the current state of the WebSocket
@@ -699,7 +699,7 @@ namespace WebSocketSharp.Server
 
     /// <summary>
     /// Closes the WebSocket connection for a session with the specified
-    /// code and reason.
+    /// status code and reason.
     /// </summary>
     /// <remarks>
     /// This method does nothing if the current state of the WebSocket
@@ -722,6 +722,12 @@ namespace WebSocketSharp.Server
     ///   </para>
     /// </param>
     /// <exception cref="ArgumentException">
+    ///   <para>
+    ///   <paramref name="code"/> is an undefined enum value.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
     ///   <para>
     ///   <paramref name="code"/> is <see cref="CloseStatusCode.MandatoryExtension"/>.
     ///   </para>
@@ -784,7 +790,7 @@ namespace WebSocketSharp.Server
 
     /// <summary>
     /// Closes the WebSocket connection for a session asynchronously with
-    /// the specified code and reason.
+    /// the specified status code and reason.
     /// </summary>
     /// <remarks>
     ///   <para>
@@ -859,7 +865,7 @@ namespace WebSocketSharp.Server
 
     /// <summary>
     /// Closes the WebSocket connection for a session asynchronously with
-    /// the specified code and reason.
+    /// the specified status code and reason.
     /// </summary>
     /// <remarks>
     ///   <para>
@@ -887,6 +893,12 @@ namespace WebSocketSharp.Server
     ///   </para>
     /// </param>
     /// <exception cref="ArgumentException">
+    ///   <para>
+    ///   <paramref name="code"/> is an undefined enum value.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
     ///   <para>
     ///   <paramref name="code"/> is <see cref="CloseStatusCode.MandatoryExtension"/>.
     ///   </para>

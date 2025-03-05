@@ -8,7 +8,7 @@
  * The MIT License
  *
  * Copyright (c) 2009 Adam MacBeth
- * Copyright (c) 2010-2022 sta.blockhead
+ * Copyright (c) 2010-2025 sta.blockhead
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,6 +81,7 @@ namespace WebSocketSharp
     private CookieCollection               _cookies;
     private NetworkCredential              _credentials;
     private bool                           _emitOnPing;
+    private static readonly byte[]         _emptyBytes;
     private bool                           _enableRedirection;
     private string                         _extensions;
     private bool                           _extensionsRequested;
@@ -126,11 +127,6 @@ namespace WebSocketSharp
     #region Internal Fields
 
     /// <summary>
-    /// Represents the empty array of <see cref="byte"/> used internally.
-    /// </summary>
-    internal static readonly byte[] EmptyBytes;
-
-    /// <summary>
     /// Represents the length used to determine whether the data should
     /// be fragmented in sending.
     /// </summary>
@@ -157,8 +153,9 @@ namespace WebSocketSharp
 
     static WebSocket ()
     {
+      _emptyBytes = new byte[0];
       _maxRetryCountForConnect = 10;
-      EmptyBytes = new byte[0];
+
       FragmentLength = 1016;
       RandomNumber = new RNGCryptoServiceProvider ();
     }
@@ -501,7 +498,7 @@ namespace WebSocketSharp
     /// </value>
     public bool IsAlive {
       get {
-        return ping (EmptyBytes);
+        return ping (_emptyBytes);
       }
     }
 
@@ -2047,7 +2044,7 @@ namespace WebSocketSharp
       var len = dataStream.Length;
 
       if (len == 0)
-        return send (Fin.Final, opcode, EmptyBytes, false);
+        return send (Fin.Final, opcode, _emptyBytes, false);
 
       var quo = len / FragmentLength;
       var rem = (int) (len % FragmentLength);
@@ -2644,7 +2641,7 @@ namespace WebSocketSharp
     }
 
     /// <summary>
-    /// Closes the connection with the specified code.
+    /// Closes the connection with the specified status code.
     /// </summary>
     /// <remarks>
     /// This method does nothing if the current state of the interface is
@@ -2661,9 +2658,6 @@ namespace WebSocketSharp
     ///   Section 7.4</see> of RFC 6455.
     ///   </para>
     /// </param>
-    /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="code"/> is less than 1000 or greater than 4999.
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="code"/> is 1011 (server error).
@@ -2677,13 +2671,16 @@ namespace WebSocketSharp
     ///   It cannot be used by a server.
     ///   </para>
     /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="code"/> is less than 1000 or greater than 4999.
+    /// </exception>
     public void Close (ushort code)
     {
       Close (code, String.Empty);
     }
 
     /// <summary>
-    /// Closes the connection with the specified code.
+    /// Closes the connection with the specified status code.
     /// </summary>
     /// <remarks>
     /// This method does nothing if the current state of the interface is
@@ -2698,6 +2695,12 @@ namespace WebSocketSharp
     ///   </para>
     /// </param>
     /// <exception cref="ArgumentException">
+    ///   <para>
+    ///   <paramref name="code"/> is an undefined enum value.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
     ///   <para>
     ///   <paramref name="code"/> is <see cref="CloseStatusCode.ServerError"/>.
     ///   It cannot be used by a client.
@@ -2716,7 +2719,7 @@ namespace WebSocketSharp
     }
 
     /// <summary>
-    /// Closes the connection with the specified code and reason.
+    /// Closes the connection with the specified status code and reason.
     /// </summary>
     /// <remarks>
     /// This method does nothing if the current state of the interface is
@@ -2741,17 +2744,6 @@ namespace WebSocketSharp
     ///   Its size must be 123 bytes or less in UTF-8.
     ///   </para>
     /// </param>
-    /// <exception cref="ArgumentOutOfRangeException">
-    ///   <para>
-    ///   <paramref name="code"/> is less than 1000 or greater than 4999.
-    ///   </para>
-    ///   <para>
-    ///   -or-
-    ///   </para>
-    ///   <para>
-    ///   The size of <paramref name="reason"/> is greater than 123 bytes.
-    ///   </para>
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="code"/> is 1011 (server error).
@@ -2778,6 +2770,17 @@ namespace WebSocketSharp
     ///   <paramref name="reason"/> could not be UTF-8-encoded.
     ///   </para>
     /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///   <para>
+    ///   <paramref name="code"/> is less than 1000 or greater than 4999.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   The size of <paramref name="reason"/> is greater than 123 bytes.
+    ///   </para>
+    /// </exception>
     public void Close (ushort code, string reason)
     {
       if (!code.IsCloseStatusCode ()) {
@@ -2786,16 +2789,19 @@ namespace WebSocketSharp
         throw new ArgumentOutOfRangeException ("code", msg);
       }
 
-      if (_client && code == 1011) {
-        var msg = "1011 cannot be used.";
+      if (_client) {
+        if (code == 1011) {
+          var msg = "1011 cannot be used.";
 
-        throw new ArgumentException (msg, "code");
+          throw new ArgumentException (msg, "code");
+        }
       }
+      else {
+        if (code == 1010) {
+          var msg = "1010 cannot be used.";
 
-      if (!_client && code == 1010) {
-        var msg = "1010 cannot be used.";
-
-        throw new ArgumentException (msg, "code");
+          throw new ArgumentException (msg, "code");
+        }
       }
 
       if (reason.IsNullOrEmpty ()) {
@@ -2828,7 +2834,7 @@ namespace WebSocketSharp
     }
 
     /// <summary>
-    /// Closes the connection with the specified code and reason.
+    /// Closes the connection with the specified status code and reason.
     /// </summary>
     /// <remarks>
     /// This method does nothing if the current state of the interface is
@@ -2851,6 +2857,12 @@ namespace WebSocketSharp
     ///   </para>
     /// </param>
     /// <exception cref="ArgumentException">
+    ///   <para>
+    ///   <paramref name="code"/> is an undefined enum value.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
     ///   <para>
     ///   <paramref name="code"/> is <see cref="CloseStatusCode.ServerError"/>.
     ///   It cannot be used by a client.
@@ -2881,16 +2893,25 @@ namespace WebSocketSharp
     /// </exception>
     public void Close (CloseStatusCode code, string reason)
     {
-      if (_client && code == CloseStatusCode.ServerError) {
-        var msg = "ServerError cannot be used.";
+      if (!code.IsDefined ()) {
+        var msg = "An undefined enum value.";
 
         throw new ArgumentException (msg, "code");
       }
 
-      if (!_client && code == CloseStatusCode.MandatoryExtension) {
-        var msg = "MandatoryExtension cannot be used.";
+      if (_client) {
+        if (code == CloseStatusCode.ServerError) {
+          var msg = "ServerError cannot be used.";
 
-        throw new ArgumentException (msg, "code");
+          throw new ArgumentException (msg, "code");
+        }
+      }
+      else {
+        if (code == CloseStatusCode.MandatoryExtension) {
+          var msg = "MandatoryExtension cannot be used.";
+
+          throw new ArgumentException (msg, "code");
+        }
       }
 
       if (reason.IsNullOrEmpty ()) {
@@ -2940,7 +2961,7 @@ namespace WebSocketSharp
     }
 
     /// <summary>
-    /// Closes the connection asynchronously with the specified code.
+    /// Closes the connection asynchronously with the specified status code.
     /// </summary>
     /// <remarks>
     ///   <para>
@@ -2962,9 +2983,6 @@ namespace WebSocketSharp
     ///   Section 7.4</see> of RFC 6455.
     ///   </para>
     /// </param>
-    /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="code"/> is less than 1000 or greater than 4999.
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="code"/> is 1011 (server error).
@@ -2978,13 +2996,16 @@ namespace WebSocketSharp
     ///   It cannot be used by a server.
     ///   </para>
     /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="code"/> is less than 1000 or greater than 4999.
+    /// </exception>
     public void CloseAsync (ushort code)
     {
       CloseAsync (code, String.Empty);
     }
 
     /// <summary>
-    /// Closes the connection asynchronously with the specified code.
+    /// Closes the connection asynchronously with the specified status code.
     /// </summary>
     /// <remarks>
     ///   <para>
@@ -3005,6 +3026,12 @@ namespace WebSocketSharp
     /// </param>
     /// <exception cref="ArgumentException">
     ///   <para>
+    ///   <paramref name="code"/> is an undefined enum value.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
     ///   <paramref name="code"/> is <see cref="CloseStatusCode.ServerError"/>.
     ///   It cannot be used by a client.
     ///   </para>
@@ -3022,7 +3049,8 @@ namespace WebSocketSharp
     }
 
     /// <summary>
-    /// Closes the connection asynchronously with the specified code and reason.
+    /// Closes the connection asynchronously with the specified status code and
+    /// reason.
     /// </summary>
     /// <remarks>
     ///   <para>
@@ -3052,17 +3080,6 @@ namespace WebSocketSharp
     ///   Its size must be 123 bytes or less in UTF-8.
     ///   </para>
     /// </param>
-    /// <exception cref="ArgumentOutOfRangeException">
-    ///   <para>
-    ///   <paramref name="code"/> is less than 1000 or greater than 4999.
-    ///   </para>
-    ///   <para>
-    ///   -or-
-    ///   </para>
-    ///   <para>
-    ///   The size of <paramref name="reason"/> is greater than 123 bytes.
-    ///   </para>
-    /// </exception>
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="code"/> is 1011 (server error).
@@ -3089,6 +3106,17 @@ namespace WebSocketSharp
     ///   <paramref name="reason"/> could not be UTF-8-encoded.
     ///   </para>
     /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///   <para>
+    ///   <paramref name="code"/> is less than 1000 or greater than 4999.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   The size of <paramref name="reason"/> is greater than 123 bytes.
+    ///   </para>
+    /// </exception>
     public void CloseAsync (ushort code, string reason)
     {
       if (!code.IsCloseStatusCode ()) {
@@ -3097,16 +3125,19 @@ namespace WebSocketSharp
         throw new ArgumentOutOfRangeException ("code", msg);
       }
 
-      if (_client && code == 1011) {
-        var msg = "1011 cannot be used.";
+      if (_client) {
+        if (code == 1011) {
+          var msg = "1011 cannot be used.";
 
-        throw new ArgumentException (msg, "code");
+          throw new ArgumentException (msg, "code");
+        }
       }
+      else {
+        if (code == 1010) {
+          var msg = "1010 cannot be used.";
 
-      if (!_client && code == 1010) {
-        var msg = "1010 cannot be used.";
-
-        throw new ArgumentException (msg, "code");
+          throw new ArgumentException (msg, "code");
+        }
       }
 
       if (reason.IsNullOrEmpty ()) {
@@ -3139,7 +3170,8 @@ namespace WebSocketSharp
     }
 
     /// <summary>
-    /// Closes the connection asynchronously with the specified code and reason.
+    /// Closes the connection asynchronously with the specified status code and
+    /// reason.
     /// </summary>
     /// <remarks>
     ///   <para>
@@ -3167,6 +3199,12 @@ namespace WebSocketSharp
     ///   </para>
     /// </param>
     /// <exception cref="ArgumentException">
+    ///   <para>
+    ///   <paramref name="code"/> is an undefined enum value.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
     ///   <para>
     ///   <paramref name="code"/> is <see cref="CloseStatusCode.ServerError"/>.
     ///   It cannot be used by a client.
@@ -3197,16 +3235,25 @@ namespace WebSocketSharp
     /// </exception>
     public void CloseAsync (CloseStatusCode code, string reason)
     {
-      if (_client && code == CloseStatusCode.ServerError) {
-        var msg = "ServerError cannot be used.";
+      if (!code.IsDefined ()) {
+        var msg = "An undefined enum value.";
 
         throw new ArgumentException (msg, "code");
       }
 
-      if (!_client && code == CloseStatusCode.MandatoryExtension) {
-        var msg = "MandatoryExtension cannot be used.";
+      if (_client) {
+        if (code == CloseStatusCode.ServerError) {
+          var msg = "ServerError cannot be used.";
 
-        throw new ArgumentException (msg, "code");
+          throw new ArgumentException (msg, "code");
+        }
+      }
+      else {
+        if (code == CloseStatusCode.MandatoryExtension) {
+          var msg = "MandatoryExtension cannot be used.";
+
+          throw new ArgumentException (msg, "code");
+        }
       }
 
       if (reason.IsNullOrEmpty ()) {
@@ -3339,7 +3386,7 @@ namespace WebSocketSharp
     /// </returns>
     public bool Ping ()
     {
-      return ping (EmptyBytes);
+      return ping (_emptyBytes);
     }
 
     /// <summary>
@@ -3366,7 +3413,7 @@ namespace WebSocketSharp
     public bool Ping (string message)
     {
       if (message.IsNullOrEmpty ())
-        return ping (EmptyBytes);
+        return ping (_emptyBytes);
 
       byte[] bytes;
 

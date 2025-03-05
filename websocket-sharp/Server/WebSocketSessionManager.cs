@@ -4,7 +4,7 @@
  *
  * The MIT License
  *
- * Copyright (c) 2012-2024 sta.blockhead
+ * Copyright (c) 2012-2025 sta.blockhead
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,7 +77,6 @@ namespace WebSocketSharp.Server
       _log = log;
 
       _forSweep = new object ();
-      _keepClean = true;
       _sessions = new Dictionary<string, IWebSocketSession> ();
       _state = ServerState.Ready;
       _sync = ((ICollection) _sessions).SyncRoot;
@@ -890,7 +889,7 @@ namespace WebSocketSharp.Server
     }
 
     /// <summary>
-    /// Closes the session with the specified ID, code, and reason.
+    /// Closes the session with the specified ID, status code, and reason.
     /// </summary>
     /// <param name="id">
     /// A <see cref="string"/> that specifies the ID of the session to close.
@@ -969,7 +968,7 @@ namespace WebSocketSharp.Server
     }
 
     /// <summary>
-    /// Closes the session with the specified ID, code, and reason.
+    /// Closes the session with the specified ID, status code, and reason.
     /// </summary>
     /// <param name="id">
     /// A <see cref="string"/> that specifies the ID of the session to close.
@@ -993,6 +992,12 @@ namespace WebSocketSharp.Server
     /// <exception cref="ArgumentException">
     ///   <para>
     ///   <paramref name="id"/> is an empty string.
+    ///   </para>
+    ///   <para>
+    ///   -or-
+    ///   </para>
+    ///   <para>
+    ///   <paramref name="code"/> is an undefined enum value.
     ///   </para>
     ///   <para>
     ///   -or-
